@@ -49,25 +49,25 @@ class RecursiveNM1(Exception):
 # Exception used for if two NM1 files call each other, and the non-Euclidean tag
 # is not present
 
-# incomplete
-class nm0file():
-    def __init__(self, path):
-        path = pathlib.Path(path)
-        temp = zipfile.ZipFile(path, mode='r')
-        self.file = temp
-        tempB = self.file.namelist()
-        tempC = False 
-        for files in tempB:
-            if files.find(".nm1") == -1:
-                tempC = True
-            else: pass
-        if tempC == True: raise MissingMapNM0
-        self.listobj = list()
+# todo: nm1 nm2 plus tags
 
-    def callNM1(self, NM1):
-        tempD = self.file.open(NM1, mode='w')
-        self.listobj.append(nm1file(tempD))
-    
+class nm0file(): # complete
+    def __init__(self, path):
+        path = pathlib.Path(path) # pathlib Path object defines what file is opened
+        temp = zipfile.ZipFile(path, mode='w') # how the file is read
+        self.file = temp # saving for later
+        tempB = self.file.namelist() # am i really going to comment every little thing?
+        self.listmap = list() # list of all the nm1 and nm2 objects (yes, yes i am)
+        for files in tempB:
+            if files.find(".nm1") == -1: # if there are no nm1 files,
+                raise MissingMapNM0 #raise the exception
+            elif files.find(".nm1") == 1: 
+                tempD = self.file.open(files, mode='w') # indexing nm1 files for use later
+                self.listmap.append(nm1file(tempD))
+            elif files.find(".nm2") == 1:
+                tempE = self.file.open(files, mode='w') # above for nm2 files
+                self.listmap.append(nm2file(tempE))
+        
     def close(self):
         self.file.close()
         del self
@@ -77,14 +77,5 @@ class nm1file():
     def __init__(self, file):
         pass
 
-temp = zipfile.ZipFile('c.zip', mode='r')
-
-tempb = temp.namelist()
-tempc = False
-for files in tempb:
-    if files.find("nm1") == -1:
-        tempc = True
-    else: pass
-if tempc == True: raise MissingMapNM0
 
 mainfile = nm0file('c.zip')
