@@ -62,6 +62,9 @@ class nm0file(): # complete
         for files in tempB:
             if files.endswith(".nm1") == True: 
                 tempD = temp.open(files, mode='r') # indexing nm1 files for use later
+                print(tempD)
+                print(tempD.readlines())
+                print("A")
                 self.listmap.append(nm1file(tempD))
                 tempC = True # stops code from raising error about no nm1 files
             elif files.endswith(".nm2") == True:
@@ -86,24 +89,20 @@ class nm1file():
         self.coordsList = dict() # final coords list
         tempA = False
         for item in templist:
-            if tempA == False and item != "ENDTAGS":
+            if tempA == False and item != "ENDTAGS\n":
                 templistA.append(item)
-            elif item == "ENDTAGS":
+            elif item == "ENDTAGS\n":
                 tempA = True
             elif tempA == True:
                 templistB.append(item)
         for item in templistA:
             tempB = item.strip()
-            print(tempB)
             tempC, tempD = tempB.split('=')
-            print(tempC)
-            print(tempD)
-            self.tagList.update({tempC, tempD}) # code's haunted
+            self.tagList[tempC] = tempD # code's not haunted anymore
         for item in templistB:
             tempB = item.strip()
             tempC, tempD = tempB.split('x')
-            self.coordsList.update({tempC, tempD})
-    
+            self.coordsList[tempC] = tempD    
     def close(self):
         del self
 
@@ -121,5 +120,6 @@ class nm2file():
             
 
 bwa = open("mapTest.nm1")
+print(bwa)
 bw2 = nm1file(bwa)
 mainfile = nm0file('i.zip')
