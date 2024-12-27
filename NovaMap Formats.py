@@ -54,28 +54,72 @@ class RecursiveNM1(Exception):
 class nm0file(): # complete
     def __init__(self, path):
         path = pathlib.Path(path) # pathlib Path object defines what file is opened
-        temp = zipfile.ZipFile(path, mode='w') # how the file is read
-        self.file = temp # saving for later
+        temp = zipfile.ZipFile(path, mode='r') # how the file is read
+        self.file = zipfile.ZipFile(path, mode='r') # saving for later
         tempB = self.file.namelist() # am i really going to comment every little thing?
         self.listmap = list() # list of all the nm1 and nm2 objects (yes, yes i am)
+        tempC = False # for exception handling
         for files in tempB:
-            if files.find(".nm1") == -1: # if there are no nm1 files,
-                raise MissingMapNM0 #raise the exception
-            elif files.find(".nm1") == 1: 
-                tempD = self.file.open(files, mode='w') # indexing nm1 files for use later
+            if files.endswith(".nm1") == True: 
+                tempD = temp.open(files, mode='r') # indexing nm1 files for use later
                 self.listmap.append(nm1file(tempD))
-            elif files.find(".nm2") == 1:
-                tempE = self.file.open(files, mode='w') # above for nm2 files
+                tempC = True # stops code from raising error about no nm1 files
+            elif files.endswith(".nm2") == True:
+                tempE = temp.open(files, mode='r') # above for nm2 files
                 self.listmap.append(nm2file(tempE))
-        
+        if tempC == False:
+            raise MissingMapNM0
     def close(self):
+        for file in self.listmap():
+            file.close()
         self.file.close()
         del self
         # Closes the selected NM0 and deletes the object that called it
 
 class nm1file():
     def __init__(self, file):
-        pass
+        templist = file.readlines()
+        print(templist)
+        templistA = list() # tags
+        templistB = list() # coords
+        self.tagList = dict() # final tag plus values
+        self.coordsList = dict() # final coords list
+        tempA = False
+        for item in templist:
+            if tempA == False and item != "ENDTAGS":
+                templistA.append(item)
+            elif item == "ENDTAGS":
+                tempA = True
+            elif tempA == True:
+                templistB.append(item)
+        for item in templistA:
+            tempB = item.strip()
+            print(tempB)
+            tempC, tempD = tempB.split('=')
+            print(tempC)
+            print(tempD)
+            self.tagList.update({tempC, tempD}) # code's haunted
+        for item in templistB:
+            tempB = item.strip()
+            tempC, tempD = tempB.split('x')
+            self.coordsList.update({tempC, tempD})
+    
+    def close(self):
+        del self
 
+class nm2file():
+    def __init__(self, file):
+        templist = file.readlines()
+        self.tagList = dict() # final tag plus values
+        for item in templist:
+            tempA = item.strip()
+            tempB, tempC = tempA.split('=')
+            self.tagList.update({tempB, tempC})
+    
+    def close(self):
+        del self
+            
 
-mainfile = nm0file('c.zip')
+bwa = open("mapTest.nm1")
+bw2 = nm1file(bwa)
+mainfile = nm0file('i.zip')
