@@ -60,10 +60,13 @@ class nm0file(): # complete
         self.listmap = list() # list of all the nm1 and nm2 objects (yes, yes i am)
         tempC = False # for exception handling
         for files in tempB:
+            print(files)
             if files.endswith(".nm1") == True: 
                 tempD = temp.open(files, mode='r') # indexing nm1 files for use later
                 print(tempD)
                 print(tempD.readlines())
+                tempY = tempD.readlines()
+                print(type(tempY))
                 print("A")
                 self.listmap.append(nm1file(tempD))
                 tempC = True # stops code from raising error about no nm1 files
@@ -97,22 +100,30 @@ class nm1file():
                 templistB.append(item)
         for item in templistA:
             tempB = item.strip()
+            print(tempB)
             tempC, tempD = tempB.split('=')
-            self.tagList[tempC] = tempD # code's not haunted anymore
+            self.tagList[tempC] = tempD # code is very very much haunted
         for item in templistB:
             tempB = item.strip()
+            print("AA")
+            print(tempB)
             tempC, tempD = tempB.split('x')
-            self.coordsList[tempC] = tempD    
+            self.coordsList[tempC] = tempD   
+        print(self.tagList)
+        print(self.coordsList) 
     def close(self):
         del self
 
 class nm2file():
     def __init__(self, file):
+        print("X")
         templist = file.readlines()
         self.tagList = dict() # final tag plus values
         for item in templist:
             tempA = item.strip()
-            tempB, tempC = tempA.split('=')
+            tempB, tempC = str(tempA).split('=')
+            print(tempB)
+            print(tempC)
             self.tagList.update({tempB, tempC})
     
     def close(self):
@@ -120,6 +131,7 @@ class nm2file():
             
 
 bwa = open("mapTest.nm1")
-print(bwa)
-bw2 = nm1file(bwa)
+# print(bwa)
+# bw2 = nm1file(bwa)
 mainfile = nm0file('i.zip')
+
