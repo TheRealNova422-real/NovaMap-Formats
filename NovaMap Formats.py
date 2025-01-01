@@ -50,11 +50,6 @@ class nm0file(): # almost complete, just debugging
             print(files)
             if files.endswith(".nm1") == True: 
                 tempD = temp.open(files, mode='r') # indexing nm1 files for use later
-                print(tempD)
-                print(tempD.readlines())
-                tempY = tempD.readlines()
-                print(type(tempY))
-                print("A")
                 self.listmap.append(nm1file(tempD))
                 tempC = True # stops code from raising error about no nm1 files
             elif files.endswith(".nm2") == True:
@@ -71,26 +66,28 @@ class nm0file(): # almost complete, just debugging
 
 class nm1file():
     def __init__(self, file):
-        templist = file.readlines()
-        print(templist)
-        templistA = list() # tags
-        templistB = list() # coords
+        templistA = file.readlines()
+        templistB = list()
+        templistC = list() # tags
+        templistD = list() # coords
         self.tagList = dict() # final tag plus values
         self.coordsList = dict() # final coords list
+        for file in templistA:
+            templistB.append(file.decode("utf-8"))
         tempA = False
-        for item in templist:
+        for item in templistB:
             if tempA == False and item != "ENDTAGS\n":
-                templistA.append(item)
+                templistC.append(item)
             elif item == "ENDTAGS\n":
                 tempA = True
             elif tempA == True:
-                templistB.append(item)
-        for item in templistA:
+                templistD.append(item)
+        for item in templistC:
             tempB = item.strip()
             print(tempB)
             tempC, tempD = tempB.split('=')
             self.tagList[tempC] = tempD # code is very very much haunted
-        for item in templistB:
+        for item in templistD:
             tempB = item.strip()
             print("AA")
             print(tempB)
@@ -103,15 +100,17 @@ class nm1file():
 
 class nm2file():
     def __init__(self, file):
-        print("X")
-        templist = file.readlines()
+        templistA = file.readlines()
+        templistB = list()
         self.tagList = dict() # final tag plus values
-        for item in templist:
+        for file in templistA:
+            templistB.append(file.decode("utf-8"))
+        for item in templistB:
             tempA = item.strip()
             tempB, tempC = str(tempA).split('=')
             print(tempB)
             print(tempC)
-            self.tagList.update({tempB, tempC})
+            self.tagList[tempB] = tempC
     
     def close(self):
         del self
