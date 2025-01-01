@@ -31,29 +31,24 @@ import pathlib, zipfile
 class MissingMapNM0(Exception):
     pass
 # Exception used for if an NM0 file does not contain any NM1 files
-class RecursiveNM1(Exception):
-    pass
-# Exception used for if two NM1 files call each other, and the non-Euclidean tag
-# is not present
 
-# todo: nm1 nm2 plus tags
+# todo: clean everything up and release v1.0
 
 class nm0file(): # almost complete, just debugging
     def __init__(self, path):
-        path = pathlib.Path(path) # pathlib Path object defines what file is opened
-        temp = zipfile.ZipFile(path, mode='r') # how the file is read
-        self.file = zipfile.ZipFile(path, mode='r') # saving for later
-        tempB = self.file.namelist() # am i really going to comment every little thing?
-        self.listmap = list() # list of all the nm1 and nm2 objects (yes, yes i am)
-        tempC = False # for exception handling
+        self.file = zipfile.ZipFile(path, mode='r')
+        tempB = self.file.namelist()
+        self.listmap = list()
+        tempC = False
+        # above: self.file = the original nm0 file; self.listmap = list of 
         for files in tempB:
             print(files)
             if files.endswith(".nm1") == True: 
-                tempD = temp.open(files, mode='r') # indexing nm1 files for use later
+                tempD = self.file.open(files, mode='r') # indexing nm1 files for use later
                 self.listmap.append(nm1file(tempD))
                 tempC = True # stops code from raising error about no nm1 files
             elif files.endswith(".nm2") == True:
-                tempE = temp.open(files, mode='r') # above for nm2 files
+                tempE = self.file.open(files, mode='r') # above for nm2 files
                 self.listmap.append(nm2file(tempE))
         if tempC == False:
             raise MissingMapNM0
@@ -86,7 +81,7 @@ class nm1file():
             tempB = item.strip()
             print(tempB)
             tempC, tempD = tempB.split('=')
-            self.tagList[tempC] = tempD # code is very very much haunted
+            self.tagList[tempC] = tempD
         for item in templistD:
             tempB = item.strip()
             print("AA")
@@ -116,7 +111,4 @@ class nm2file():
         del self
             
 
-bwa = open("mapTest.nm1")
-# print(bwa)
-# bw2 = nm1file(bwa)
 mainfile = nm0file('i.zip')
