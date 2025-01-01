@@ -1,4 +1,4 @@
-import pathlib, zipfile
+import pathlib, zipfile, os
 
 # NovaMap File Formats
 
@@ -31,12 +31,18 @@ import pathlib, zipfile
 class MissingMapNM0(Exception):
     pass
 # Exception used for if an NM0 file does not contain any NM1 files
+class NotValidAppendFileNM0(Exception):
+    pass
+# Exception used for if, when adding a file to an NM0 file, the file being added
+# is not a valid NM1 or NM2 file.
 
-# todo: clean everything up and release v1.0
+
+# todo: code for creating nm0 files
 
 class nm0file(): # almost complete, just debugging
-    def __init__(self, path):
-        self.file = zipfile.ZipFile(path, mode='r')
+    def __init__(self, path: pathlib.Path):
+        if os.path.exists(path) == False: raise FileNotFoundError # check if file exists
+        self.file = zipfile.ZipFile(path, mode='w')
         tempB = self.file.namelist()
         self.listmap = list()
         tempC = False
@@ -44,14 +50,21 @@ class nm0file(): # almost complete, just debugging
         for files in tempB:
             print(files)
             if files.endswith(".nm1") == True: 
-                tempD = self.file.open(files, mode='r') # indexing nm1 files for use later
+                tempD = self.file.open(files, mode='w') # indexing nm1 files for use
                 self.listmap.append(nm1file(tempD))
                 tempC = True # stops code from raising error about no nm1 files
             elif files.endswith(".nm2") == True:
-                tempE = self.file.open(files, mode='r') # above for nm2 files
+                tempE = self.file.open(files, mode='w') # above for nm2 files
                 self.listmap.append(nm2file(tempE))
         if tempC == False:
             raise MissingMapNM0
+    
+    def addFile(self, file):
+        if isinstance(file, (nm1file, nm2file)) == False:
+            raise NotValidAppendFileNM0
+        self.file.write(file)
+        
+
     def close(self):
         for file in self.listmap():
             file.close()
@@ -110,5 +123,68 @@ class nm2file():
     def close(self):
         del self
             
+def createnm0(name: str, files: list):
+    name = (name + ".nm0")
+    zipfile.ZipFile(name, 'x')
+    path = pathlib.Path("./" + name)
+    nm0 = nm0file(path)
+    y = False
+    for x in files:
+        try: nm0.addFile(x)
+        except NotValidAppendFileNM0: y = True
+    if y == True: raise NotValidAppendFileNM0
+    return nm0
 
-mainfile = nm0file('i.zip')
+def createnm1(name: str, tags: dict, coords: dict):
+    name = (name + ".nm1")
+    file = open(name, 'w')
+    templistA = list() # tag keys
+    templistB = list() # tag values
+    templistC = list() # coord X
+    templistD = list() # coord Y
+    for x in tags.keys():
+        templistA.append(x)
+    for x in tags.values():
+        templistB.append(x)
+    for x in coords.keys():
+        templistC.append(x)
+    for x in coords.values():
+        templistD.append(x)
+    for x in range(len(templistA)):
+        file.write(str(templistA[x]))
+        file.write(" = ")
+        file.write(str(templistB[x]))
+        file.write("\n")
+    file.write("ENDTAGS\n")
+    for x in range(len(templistC)):
+        file.write(str(templistC[x]))
+        file.write("x")
+        file.write(str(templistD[x]))
+        file.write("\n")
+    return file
+
+def createnm2(name: str, tags: dict):
+    name = (name + ".nm2")
+    file = open(name, 'w')
+    templistA = list() # tag keys
+    templistB = list() # tag values
+    for x in tags.keys():
+        templistA.append(x)
+    for x in tags.values():
+        templistB.append(x)
+    for x in range(len(templistA)):
+        file.write(str(templistA[x]))
+        file.write("=")
+        file.write(str(templistB[x]))
+        file.write("\n")
+    return file
+
+d = {
+    str("a"):int(5), 
+    str("b"):int(10)
+}
+e = {
+    int(10):int(5), 
+    int(5):int(10)
+}
+createnm1("test", d, e)
