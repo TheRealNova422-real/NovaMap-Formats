@@ -39,10 +39,14 @@ class NotValidAppendFileNM0(Exception):
 
 # todo: code for creating nm0 files
 
-class nm0file(): # almost complete, just debugging
-    def __init__(self, path: pathlib.Path):
+class nm0file(): # todo: make compatible with creating
+    def __init__(self, path: pathlib.Path, startLoad: bool = True):
         if os.path.exists(path) == False: raise FileNotFoundError # check if file exists
-        self.file = zipfile.ZipFile(path, mode='w')
+        self.file = zipfile.ZipFile(path, mode='r')
+        if startLoad == True: 
+            self.loadFiles()
+    
+    def loadFiles(self):
         tempB = self.file.namelist()
         self.listmap = list()
         tempC = False
@@ -50,11 +54,11 @@ class nm0file(): # almost complete, just debugging
         for files in tempB:
             print(files)
             if files.endswith(".nm1") == True: 
-                tempD = self.file.open(files, mode='w') # indexing nm1 files for use
+                tempD = self.file.open(files, mode='r') # indexing nm1 files for use
                 self.listmap.append(nm1file(tempD))
                 tempC = True # stops code from raising error about no nm1 files
             elif files.endswith(".nm2") == True:
-                tempE = self.file.open(files, mode='w') # above for nm2 files
+                tempE = self.file.open(files, mode='r') # above for nm2 files
                 self.listmap.append(nm2file(tempE))
         if tempC == False:
             raise MissingMapNM0
@@ -62,7 +66,28 @@ class nm0file(): # almost complete, just debugging
     def addFile(self, file):
         if isinstance(file, (nm1file, nm2file)) == False:
             raise NotValidAppendFileNM0
-        self.file.write(file)
+        if isinstance(file, nm1file) == True:
+            nm1temp = True
+        else:
+            nm1temp = False
+        templistA = list() # tag keys
+        templistB = list() # tag values
+        templistC = list() # coord X
+        templistD = list() # coord Y
+        temp = str()
+        print(file.tagList)
+        for x in file.tagList.keys():
+            templistA.append(x)
+        for x in file.tagList.values():
+            templistB.append(x)
+        for x in range(len(templistA)):
+            temp = temp + (str(templistA[x]))
+            temp = temp + ("=")
+            temp = temp + (str(templistB[x]))
+            temp = temp + ("\n")
+        print(temp)
+        if nm1temp == True:
+            pass
         
 
     def close(self):
@@ -81,7 +106,8 @@ class nm1file():
         self.tagList = dict() # final tag plus values
         self.coordsList = dict() # final coords list
         for file in templistA:
-            templistB.append(file.decode("utf-8"))
+            try: templistB.append(file.decode("utf-8"))
+            except AttributeError: templistB.append(file)
         tempA = False
         for item in templistB:
             if tempA == False and item != "ENDTAGS\n":
@@ -112,14 +138,15 @@ class nm2file():
         templistB = list()
         self.tagList = dict() # final tag plus values
         for file in templistA:
-            templistB.append(file.decode("utf-8"))
+            try: templistB.append(file.decode("utf-8"))
+            except AttributeError: templistB.append(file)
         for item in templistB:
             tempA = item.strip()
             tempB, tempC = str(tempA).split('=')
             print(tempB)
             print(tempC)
+            print("AAA")
             self.tagList[tempB] = tempC
-    
     def close(self):
         del self
             
@@ -127,13 +154,13 @@ def createnm0(name: str, files: list):
     name = (name + ".nm0")
     zipfile.ZipFile(name, 'x')
     path = pathlib.Path("./" + name)
-    nm0 = nm0file(path)
+    nm0 = nm0file(path, False)
     y = False
     for x in files:
         try: nm0.addFile(x)
         except NotValidAppendFileNM0: y = True
     if y == True: raise NotValidAppendFileNM0
-    return nm0
+    nm0.loadFiles()
 
 def createnm1(name: str, tags: dict, coords: dict):
     name = (name + ".nm1")
@@ -186,5 +213,8 @@ d = {
 e = {
     int(10):int(5), 
     int(5):int(10)
-}
-createnm1("test", d, e)
+ }
+x = nm1file(open("testing.nm1"))
+y = list()
+y.append(x)
+createnm0("tested", y)
