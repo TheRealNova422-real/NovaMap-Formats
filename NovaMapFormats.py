@@ -2,31 +2,6 @@ import pathlib, zipfile
 
 # NovaMap File Formats
 
-# NovaMap files are intended to be a quick and easy solution to storing locations
-# of objects and other locations within 2D space.
-
-# NM0 (En-Em-Zero) files are folders using zip compression to house the full map.
-
-# NM1 (En-Em-One) files are positional maps. They contain a set of metadata,
-# followed by a list of coordinates.
-
-# NM2 (En-Em-Two) files are references. Similar to NM1s, they contain a set of
-# metadata tags but without any coordinate sets.
-
-# Metadata is stored in the form of Tags, which are accessed by the program and
-# can be accessed at any time.
-
-# NM1 and NM2 files begin with the tags, 
-
-# An example of these files is as follows:
-# MainMap.nm0
-# -> House.nm1       - calls LivingRoom.nm1 and Kitchen.nm1
-#   LivingRoom.nm1  - calls Sofa.nm2
-#   Kitchen.nm1     - calls Fridge.nm2
-#   Sofa.nm2        - has "Sittable" tag
-#   Fridge.nm2      - has "Container" tag
-
-
 # Exceptions:
 class MissingMapNM0(Exception):
     pass
