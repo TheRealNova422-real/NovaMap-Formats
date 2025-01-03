@@ -1,4 +1,4 @@
-import pathlib, zipfile, os
+import pathlib, zipfile
 
 # NovaMap File Formats
 
@@ -41,7 +41,6 @@ class NotValidAppendFileNM0(Exception):
 
 class nm0file(): # todo: done?
     def __init__(self, path: pathlib.Path, startLoad: bool = True):
-        if os.path.exists(path) == False: raise FileNotFoundError # check if file exists
         self.file = zipfile.ZipFile(path, mode='r')
         self.path = path
         self.tempListToSave = list()
@@ -95,8 +94,11 @@ class nm0file(): # todo: done?
             temp = temp + ("ENDTAGS\n")
             for x in range(len(templistC)):
                 temp = temp + (str(templistC[x]))
+                temp = temp + ("=")
+                tempA, tempB = templistD[x]
+                temp = temp + tempA
                 temp = temp + ("x")
-                temp = temp + (str(templistD[x]))
+                temp = temp + tempB
                 temp = temp + ("\n")
         self.tempListToSave.append(temp)
         self.tempListToSaveNames.append(name)
@@ -118,12 +120,12 @@ class nm0file(): # todo: done?
             temp1.append(map)
         for name in self.tempListToSaveNames:
             temp2.append(name)
-        file = zipfile.ZipFile(self.path, mode='w')
+        self.file = zipfile.ZipFile(self.path, mode='w')
         for name in temp2:
             ind = temp2.index(name)
             finalSaveList[name] = temp1[ind]
         for map in finalSaveList.keys():
-            file.writestr(map, finalSaveList[map])
+            self.file.writestr(map, finalSaveList[map])
         self.close()
 
 class nm1file():
@@ -154,8 +156,10 @@ class nm1file():
             self.tagList[tempC] = tempD
         for item in templistD:
             tempB = item.strip()
-            tempC, tempD = tempB.split('x')
-            self.coordsList[tempC] = tempD  
+            print(item)
+            tempC, tempD = tempB.split('=')
+            tempE, tempF = tempD.split('x')
+            self.coordsList[tempC] = (tempE, tempF)  
 
     def close(self):
         del self
@@ -185,7 +189,7 @@ def createnm0(name: str, files: list): # sure enough, this was never the problem
     nm0 = nm0file(path, False)
     y = False
     for x in files:
-        try: nm0.addFile(x, x.name)
+        try: nm0.addFile(x)
         except NotValidAppendFileNM0: y = True
     if y == True: raise NotValidAppendFileNM0
     nm0.saveAll()
@@ -194,11 +198,12 @@ def createnm0(name: str, files: list): # sure enough, this was never the problem
 
 def createnm1(name: str, tags: dict, coords: dict):
     name = (name + ".nm1")
-    file = open(name, 'w')
+    file = open(name, 'x')
     templistA = list() # tag keys
     templistB = list() # tag values
-    templistC = list() # coord X
-    templistD = list() # coord Y
+    templistC = list() # coord names
+    templistD = list() # coord X
+    templistE = list() # coord Y
     for x in tags.keys():
         templistA.append(x)
     for x in tags.values():
@@ -206,7 +211,8 @@ def createnm1(name: str, tags: dict, coords: dict):
     for x in coords.keys():
         templistC.append(x)
     for x in coords.values():
-        templistD.append(x)
+        templistD.append(x[0])
+        templistE.append(x[1])
     for x in range(len(templistA)):
         file.write(str(templistA[x]))
         file.write("=")
@@ -215,14 +221,16 @@ def createnm1(name: str, tags: dict, coords: dict):
     file.write("ENDTAGS\n")
     for x in range(len(templistC)):
         file.write(str(templistC[x]))
-        file.write("x")
+        file.write("=")
         file.write(str(templistD[x]))
+        file.write("x")
+        file.write(str(templistE[x]))
         file.write("\n")
     return file
 
 def createnm2(name: str, tags: dict):
     name = (name + ".nm2")
-    file = open(name, 'w')
+    file = open(name, 'x')
     templistA = list() # tag keys
     templistB = list() # tag values
     for x in tags.keys():
@@ -235,4 +243,3 @@ def createnm2(name: str, tags: dict):
         file.write(str(templistB[x]))
         file.write("\n")
     return file
-
