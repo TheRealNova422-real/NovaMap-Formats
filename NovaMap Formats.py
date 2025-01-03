@@ -37,16 +37,20 @@ class NotValidAppendFileNM0(Exception):
 # is not a valid NM1 or NM2 file.
 
 
-# todo: code for creating and modifying nm0 files. EVERYTHING ELSE IS DONE probably
+# todo: neaten up comments
 
-class nm0file(): # todo: make compatible with creating
+class nm0file(): # todo: done?
     def __init__(self, path: pathlib.Path, startLoad: bool = True):
         if os.path.exists(path) == False: raise FileNotFoundError # check if file exists
         self.file = zipfile.ZipFile(path, mode='r')
+        self.path = path
+        self.tempListToSave = list()
+        self.listmap = list()
+        self.tempListToSaveNames = list()
         if startLoad == True:
             self.loadFiles()
     
-    def loadFiles(self): # EVERYTHING ELSE WORKS BUT THIS
+    def loadFiles(self):
         tempB = self.file.namelist()
         self.listmap = list()
         tempC = False
@@ -61,8 +65,7 @@ class nm0file(): # todo: make compatible with creating
         if tempC == False:
             raise MissingMapNM0
     
-    def addFile(self, file):
-        return
+    def addFile(self, file): # oh it works now?
         if isinstance(file, (nm1file, nm2file)) == False:
             raise NotValidAppendFileNM0
         if isinstance(file, nm1file) == True:
@@ -74,6 +77,7 @@ class nm0file(): # todo: make compatible with creating
         templistC = list() # coord X
         templistD = list() # coord Y
         temp = str() # end file
+        name = file.name
         for x in file.tagList.keys():
             templistA.append(x)
         for x in file.tagList.values():
@@ -94,15 +98,33 @@ class nm0file(): # todo: make compatible with creating
                 temp = temp + ("x")
                 temp = temp + (str(templistD[x]))
                 temp = temp + ("\n")
-        self.fileW.writestr(file.name, temp)
+        self.tempListToSave.append(temp)
+        self.tempListToSaveNames.append(name)
         
-
     def close(self):
-        for file in self.listmap():
+        for file in self.listmap:
             file.close()
         self.file.close()
         del self
-        # Closes the selected NM0 and deletes the object that called it
+
+    def saveAll(self):
+        finalSaveList = dict()
+        temp1 = list()
+        temp2 = list()
+        for map in self.listmap:
+            temp1.append(self.file.open(map.name).read().decode("utf-8"))
+            temp2.append(map.name)
+        for map in self.tempListToSave:
+            temp1.append(map)
+        for name in self.tempListToSaveNames:
+            temp2.append(name)
+        file = zipfile.ZipFile(self.path, mode='w')
+        for name in temp2:
+            ind = temp2.index(name)
+            finalSaveList[name] = temp1[ind]
+        for map in finalSaveList.keys():
+            file.writestr(map, finalSaveList[map])
+        self.close()
 
 class nm1file():
     def __init__(self, file):
@@ -145,8 +167,10 @@ class nm2file():
         templistB = list()
         self.tagList = dict() # final tag plus values
         for file in templistA:
-            try: templistB.append(file.decode("utf-8"))
-            except AttributeError: templistB.append(file)
+            if type(file) == bytes: 
+                templistB.append(file.decode("utf-8"))
+            else: 
+                templistB.append(file)
         for item in templistB:
             tempA = item.strip()
             tempB, tempC = str(tempA).split('=')
@@ -154,18 +178,18 @@ class nm2file():
     def close(self):
         del self
             
-def createnm0(name: str, files: list): # THIS WILL BE THE DEATH OF ME I STG
-    return
+def createnm0(name: str, files: list): # sure enough, this was never the problem
     name = (name + ".nm0")
     zipfile.ZipFile(name, 'x')
     path = pathlib.Path("./" + name)
     nm0 = nm0file(path, False)
     y = False
     for x in files:
-        try: nm0.addFile(x)
+        try: nm0.addFile(x, x.name)
         except NotValidAppendFileNM0: y = True
     if y == True: raise NotValidAppendFileNM0
-    nm0.loadFiles()
+    nm0.saveAll()
+    nm0 = nm0file(path, True)
     return nm0
 
 def createnm1(name: str, tags: dict, coords: dict):
@@ -211,3 +235,4 @@ def createnm2(name: str, tags: dict):
         file.write(str(templistB[x]))
         file.write("\n")
     return file
+
