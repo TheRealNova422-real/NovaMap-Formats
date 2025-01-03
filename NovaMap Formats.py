@@ -1,4 +1,4 @@
-import pathlib, zipfile, os, shutil
+import pathlib, zipfile, os
 
 # NovaMap File Formats
 
