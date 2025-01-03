@@ -1,0 +1,18 @@
+import NovaMapFormats as NMF
+
+exampleArrayCoords = {
+    str("example1"):(int(5), int(10)),
+    str("example2"):(int(10), int(20))
+}
+exampleArrayTags = {
+    str("exampleTag1"):bool(True),
+    str("exampleTag2"):bool(False)
+}
+NMF.createnm1("testFile", exampleArrayTags, exampleArrayCoords)
+NMF.createnm2("testFile", exampleArrayTags)
+testFile1 = NMF.nm1file(open("testFile.nm1"))
+testFile2 = NMF.nm2file(open("testFile.nm2"))
+y = list()
+y.append(testFile1)
+y.append(testFile2)
+NMF.createnm0("testFile", y)
